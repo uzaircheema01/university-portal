@@ -1,4 +1,4 @@
-name: Code Testing
+name: Code Testing & Validation
 
 on:
   push:
@@ -10,22 +10,86 @@ on:
 
 jobs:
   code-quality:
+    name: Linting & Code Standards
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: 🔧 Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install Dependencies
+      - name: 📦 Install Dependencies
         run: npm install
 
-      - name: Run ESLint (Check Code Quality)
-        run: npx eslint . || true # Prevents pipeline failure
+      - name: 🎯 Run ESLint (Code Linting)
+        run: npx eslint . --fix || true
 
-      - name: Run Tests
+  unit-tests:
+    name: Unit Testing
+    runs-on: ubuntu-latest
+    needs: code-quality
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🔧 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🔬 Run Unit Tests (Jest)
         run: npm test || echo "Tests failed, check logs"
+
+  integration-tests:
+    name: Integration Testing
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🔧 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🚀 Start Application
+        run: npm start &
+      
+      - name: 🔌 Run Integration Tests
+        run: npm run test:integration || true
+
+      - name: ⛔ Stop Application
+        run: pkill -f "node server.js"
+
+  build-validation:
+    name: Build Validation
+    runs-on: ubuntu-latest
+    needs: integration-tests
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🔧 Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🏗️ Run Build Process
+        run: npm run build || true

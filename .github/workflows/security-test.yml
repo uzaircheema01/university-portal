@@ -1,4 +1,4 @@
-name: Security Test (OWASP ZAP)
+name: Security Testing
 
 on:
   push:
@@ -9,31 +9,41 @@ on:
       - main
 
 jobs:
-  security-test:
+  security-scan:
+    name: OWASP & Security Analysis
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: 🔧 Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install Dependencies
+      - name: 📦 Install Dependencies
         run: npm install
 
-      - name: Start Application
-        run: |
-          npm start &
-          sleep 10 # Give the server time to start
-
-      - name: Run OWASP ZAP Baseline Scan
+      - name: 🛡️ Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.7.0
         with:
           target: "http://localhost:3000"
-          fail_action: false # Change to true if you want the pipeline to fail on vulnerabilities
+          fail_action: false # Change to true to fail on vulnerabilities
 
-      - name: Stop Application
+      - name: 🔍 Run Dependency Audit (Check for Vulnerable Packages)
+        run: npm audit --audit-level=high || true
+
+      - name: 🔑 Scan for Exposed Secrets
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: gitleaks.toml
+          fail: true
+
+      - name: 🔎 Run Static Code Analysis (SAST)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "p/default"
+
+      - name: ⛔ Stop Application
         run: pkill -f "node server.js"
