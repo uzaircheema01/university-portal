@@ -1,0 +1,18 @@
+[
+    {
+        "id": "S12345",
+        "name": "John Doe",
+        "username": "john123",
+        "password": "password123",
+        "course": "Computer Science",
+        "email": "john.doe@university.com"
+    },
+    {
+        "id": "S67890",
+        "name": "Jane Smith",
+        "username": "jane456",
+        "password": "password456",
+        "course": "Software Engineering",
+        "email": "jane.smith@university.com"
+    }
+]
