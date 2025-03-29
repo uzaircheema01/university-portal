@@ -1,4 +1,4 @@
-name: Security Test
+name: Security Test (SQL Injection)
 
 on:
   push:
@@ -9,40 +9,31 @@ on:
       - main
 
 jobs:
-  security_scan:
-    name: Run Security Scans
+  security-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # OWASP ZAP Scan using GitHub Action (instead of Docker)
-      - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.7.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          target: 'http://your-university-portal-url.com'  # Replace with your deployed project URL
-          format: 'html'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 18
 
-      # GitHub CodeQL Security Scan
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: javascript  # Change this based on your project (e.g., python, java, etc.)
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+      - name: Start Application
+        run: |
+          npm start &
+          sleep 10 # Give the server time to start
 
-      # (Optional) Snyk for Dependency Scanning
-      - name: Run Snyk Security Scan
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Install SQL Injection Testing Tool
+        run: sudo apt-get install sqlmap -y
 
-      # Upload ZAP Report as an Artifact
-      - name: Upload OWASP ZAP Report
-        uses: actions/upload-artifact@v2
-        with:
-          name: zap-security-report
-          path: report_html.html
+      - name: Run SQL Injection Scan
+        run: sqlmap -u "http://localhost:3000" --batch --risk=3 --level=5 --dbs
+
+      - name: Stop Application
+        run: pkill -f "node server.js"
