@@ -42,7 +42,7 @@ jobs:
 
       # Upload ZAP Report as an Artifact
       - name: Upload OWASP ZAP Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: zap-security-report
           path: report_html.html
