@@ -1,0 +1,68 @@
+name: Node.js CI - OWASP Top 10 Security Testing
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security-testing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      run: npm install
+
+    # OWASP A01:2021 - Broken Access Control & A03:2021 - Injection
+    - name: Run ESLint for security linting
+      run: npx eslint .
+
+    # OWASP A06:2021 - Vulnerable & Outdated Components
+    - name: Run npm audit for dependency vulnerabilities
+      run: npm audit --audit-level=high
+
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+
+    # OWASP A05:2021 - Security Misconfiguration
+    - name: Run Checkov for Infrastructure as Code (IaC) security
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory: .
+        framework: terraform
+
+    - name: Run Trivy for Docker security scanning
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'your-docker-image:latest'
+        format: 'table'
+        exit-code: 1
+
+    # OWASP A07:2021 - Identification & Authentication Failures
+    - name: Run GitLeaks to detect exposed secrets
+      uses: gitleaks/gitleaks-action@v2
+      with:
+        config-path: gitleaks.toml
+
+    # OWASP A09:2021 - Security Logging and Monitoring Failures
+    - name: Run OWASP ZAP for runtime security testing
+      uses: zaproxy/action-full-scan@v0.5.0
+      with:
+        target: 'http://localhost:3000'
+        rules: 'WARN'
+
