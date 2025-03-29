@@ -1,4 +1,4 @@
-name: Security Testing
+name: Security Test
 
 on:
   push:
@@ -9,41 +9,40 @@ on:
       - main
 
 jobs:
-  security-scan:
-    name: OWASP & Security Analysis
+  security_scan:
+    name: Run Security Scans
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 🔧 Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: 📦 Install Dependencies
-        run: npm install
-
-      - name: 🛡️ Run OWASP ZAP Baseline Scan
+      # OWASP ZAP Scan using GitHub Action (instead of Docker)
+      - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.7.0
         with:
-          target: "http://localhost:3000"
-          fail_action: false # Change to true to fail on vulnerabilities
+          target: 'http://your-university-portal-url.com'  # Replace with your deployed project URL
+          format: 'html'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔍 Run Dependency Audit (Check for Vulnerable Packages)
-        run: npm audit --audit-level=high || true
-
-      - name: 🔑 Scan for Exposed Secrets
-        uses: gitleaks/gitleaks-action@v2
+      # GitHub CodeQL Security Scan
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
         with:
-          config-path: gitleaks.toml
-          fail: true
+          languages: javascript  # Change this based on your project (e.g., python, java, etc.)
 
-      - name: 🔎 Run Static Code Analysis (SAST)
-        uses: returntocorp/semgrep-action@v1
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      # (Optional) Snyk for Dependency Scanning
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # Upload ZAP Report as an Artifact
+      - name: Upload OWASP ZAP Report
+        uses: actions/upload-artifact@v3
         with:
-          config: "p/default"
-
-      - name: ⛔ Stop Application
-        run: pkill -f "node server.js"
+          name: zap-security-report
+          path: report_html.html
