@@ -14,18 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 🔧 Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: 📦 Install Dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: 🎯 Run ESLint (Code Linting)
+      - name: Run ESLint (Code Linting)
         run: npx eslint . --fix || true
 
   unit-tests:
@@ -34,18 +34,18 @@ jobs:
     needs: code-quality
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 🔧 Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: 📦 Install Dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: 🔬 Run Unit Tests (Jest)
+      - name: Run Unit Tests (Jest)
         run: npm test || echo "Tests failed, check logs"
 
   integration-tests:
@@ -54,24 +54,24 @@ jobs:
     needs: unit-tests
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 🔧 Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: 📦 Install Dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: 🚀 Start Application
+      - name: Start Application
         run: npm start &
       
-      - name: 🔌 Run Integration Tests
+      - name: Run Integration Tests
         run: npm run test:integration || true
 
-      - name: ⛔ Stop Application
+      - name: Stop Application
         run: pkill -f "node server.js"
 
   build-validation:
@@ -80,16 +80,16 @@ jobs:
     needs: integration-tests
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 🔧 Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: 📦 Install Dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: 🏗️ Run Build Process
+      - name: Run Build Process
         run: npm run build || true
